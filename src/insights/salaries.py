@@ -19,36 +19,38 @@ class ProcessSalaries(ProcessJobs):
         return min(int(s) for s in salaries if s.isdigit())
 
     def matches_salary_range(self, job: Dict, salary: Union[int, str]) -> bool:
-        result = bool()
         try:
-            if "min_salary" not in job or "max_salary" not in job:
+            min_salary = job.get("min_salary")
+            max_salary = job.get("max_salary")
+
+            min_salary = (
+                int(min_salary)
+                if isinstance(min_salary, str) and min_salary.isdigit()
+                else min_salary
+            )
+            max_salary = (
+                int(max_salary)
+                if isinstance(max_salary, str) and max_salary.isdigit()
+                else max_salary
+            )
+            salary = (
+                int(salary)
+                if isinstance(salary, str) and salary.isdigit()
+                else salary
+            )
+
+            if (
+                not all(
+                    isinstance(i, int)
+                    for i in [min_salary, max_salary, salary]
+                )
+                or max_salary < min_salary
+            ):
                 raise ValueError()
-            min_salary = job["min_salary"]
-            max_salary = job["max_salary"]
-            if type(min_salary) != str and type(min_salary) != int:
-                raise ValueError()
-            if type(max_salary) != str and type(max_salary) != int:
-                raise ValueError()
-            if type(salary) != str and type(salary) != int:
-                raise ValueError()
-            if type(min_salary) == str:
-                if not min_salary.isdigit():
-                    raise ValueError()
-                min_salary = int(min_salary)
-            if type(max_salary) == str:
-                if not max_salary.isdigit():
-                    raise ValueError()
-                max_salary = int(max_salary)
-            if max_salary < min_salary:
-                raise ValueError()
-            if type(salary) == str:
-                if not salary.isdigit():
-                    raise ValueError()
-                salary = int(salary)
-            result = min_salary <= salary <= max_salary
+
+            return min_salary <= salary <= max_salary
         except ValueError:
             raise ValueError()
-        return result
 
     def filter_by_salary_range(
         self, jobs: List[dict], salary: Union[str, int]
